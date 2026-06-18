@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { track } from "@vercel/analytics";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/input";
@@ -22,6 +23,7 @@ export default function ContactForm({ dict }: { dict: Dictionary["form"] }) {
         body: JSON.stringify(data),
       });
       if (!res.ok) throw new Error("request failed");
+      track("lead");
       setStatus("success");
       form.reset();
     } catch {
