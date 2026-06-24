@@ -28,7 +28,7 @@ export async function generateMetadata({
     description: dict.meta.description,
     alternates: {
       canonical: `/${locale}`,
-      languages: { ru: "/ru", lv: "/lv" },
+      languages: { ru: "/ru", lv: "/lv", en: "/en" },
     },
     openGraph: {
       type: "website",
@@ -36,7 +36,7 @@ export async function generateMetadata({
       title: ogTitle,
       description: dict.meta.description,
       url: `/${locale}`,
-      locale: locale === "lv" ? "lv_LV" : "ru_RU",
+      locale: locale === "lv" ? "lv_LV" : locale === "en" ? "en_US" : "ru_RU",
     },
     twitter: {
       card: "summary_large_image",

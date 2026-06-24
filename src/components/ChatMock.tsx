@@ -7,7 +7,7 @@ export default function ChatMock({ chat }: { chat: Dictionary["hero"]["chat"] })
   return (
     <div className="float-slow relative mx-auto w-full max-w-sm">
       <div className="absolute -inset-4 -z-10 rounded-[2rem] bg-gradient-to-tr from-brand/30 to-brand-2/20 blur-2xl" />
-      <div className="overflow-hidden rounded-[1.75rem] border border-white/10 bg-[#0e0e12] shadow-2xl">
+      <div className="overflow-hidden rounded-[1.75rem] border border-[#8E9399]/20 bg-[#131313] shadow-2xl">
         <div className="flex items-center gap-3 border-b border-white/10 bg-white/[0.03] px-4 py-3">
           <span className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-brand to-brand-2 text-sm font-bold text-white">
             L
