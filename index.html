@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lumeo AI</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0d0d; --surface: #1a1a1a; --surface2: #222;
+      --border: rgba(255,255,255,.09); --border-hover: rgba(255,255,255,.18);
+      --text: #f5f5f5; --muted: #888; --muted2: #555;
+      --green: #22c55e; --green-bg: rgba(34,197,94,.12);
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif; background:var(--bg); color:var(--text); line-height:1.5; -webkit-font-smoothing:antialiased; }
+    a { text-decoration:none; color:inherit; }
+
+    /* NAV */
+    .nav { position:sticky; top:0; z-index:100; background:rgba(13,13,13,.88); backdrop-filter:blur(18px); border-bottom:1px solid var(--border); }
+    .nav-inner { max-width:1240px; margin:0 auto; padding:0 24px; height:64px; display:flex; align-items:center; gap:24px; }
+    .logo { display:flex; align-items:center; gap:10px; font-weight:700; font-size:18px; letter-spacing:-.02em; white-space:nowrap; }
+    .nav-links { display:flex; gap:24px; list-style:none; flex:1; }
+    .nav-links a { font-size:14px; color:var(--muted); transition:color .2s; }
+    .nav-links a:hover { color:var(--text); }
+    .nav-actions { display:flex; gap:10px; margin-left:auto; align-items:center; }
+
+    /* Language switcher */
+    .lang-switch { display:flex; align-items:center; gap:2px; background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:3px; }
+    .lang-btn { padding:5px 9px; border-radius:6px; font-size:12px; font-weight:700; color:var(--muted); cursor:pointer; transition:background .15s,color .15s; letter-spacing:.04em; border:none; background:none; }
+    .lang-btn.active { background:rgba(255,255,255,.12); color:var(--text); }
+    .lang-btn:hover:not(.active) { color:var(--text); }
+
+    .btn { display:inline-flex; align-items:center; gap:8px; padding:10px 18px; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; transition:opacity .2s,background .2s; border:none; white-space:nowrap; }
+    .btn:hover { opacity:.85; }
+    .btn-outline { background:transparent; border:1px solid var(--border-hover); color:var(--text); }
+    .btn-outline:hover { border-color:rgba(255,255,255,.3); }
+    .btn-solid { background:var(--text); color:#000; }
+
+    /* HERO */
+    .hero-wrap { border-top:1px solid var(--border); }
+    .hero { padding:88px 24px 72px; max-width:1240px; margin:0 auto; }
+    .hero-badge { display:inline-flex; align-items:center; gap:8px; padding:6px 14px; border:1px solid var(--border-hover); border-radius:999px; font-size:12px; font-weight:600; letter-spacing:.08em; color:var(--muted); text-transform:uppercase; margin-bottom:32px; }
+    .hero-badge-dot { width:6px; height:6px; border-radius:50%; background:var(--green); box-shadow:0 0 6px var(--green); }
+    .hero-cols { display:grid; grid-template-columns:1fr 1fr; gap:56px; align-items:center; }
+    .hero-title { font-size:clamp(36px,5vw,60px); font-weight:800; letter-spacing:-.04em; line-height:1.0; margin-bottom:20px; }
+    .hero-title .accent { color:#c0a060; }
+    .hero-desc { font-size:16px; color:var(--muted); max-width:480px; line-height:1.65; margin-bottom:32px; }
+    .hero-actions { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:48px; }
+    .hero-actions .btn { padding:13px 22px; font-size:15px; border-radius:9px; }
+    .hero-metrics { display:flex; gap:24px; flex-wrap:wrap; }
+    .metric { display:flex; align-items:center; gap:10px; }
+    .metric-icon { width:34px; height:34px; border-radius:8px; background:var(--surface); border:1px solid var(--border); display:grid; place-items:center; font-size:14px; flex-shrink:0; }
+    .metric-text { font-size:13px; color:var(--muted); line-height:1.35; }
+    .metric-text b { display:block; color:var(--text); font-size:14px; }
+
+    /* CHAT WIDGET */
+    @keyframes fadeInUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes blink { 0%,80%,100% { opacity:.25; } 40% { opacity:1; } }
+    @keyframes floatSlow { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-14px); } }
+    .chat-widget { position:relative; max-width:380px; margin:0 auto; animation:floatSlow 7s ease-in-out infinite; }
+    .chat-box { overflow:hidden; border-radius:16px; border:1px solid var(--border-hover); background:var(--surface); }
+    .chat-head { display:flex; align-items:center; gap:10px; padding:14px 16px; border-bottom:1px solid var(--border); background:var(--surface2); }
+    .chat-avatar { width:36px; height:36px; border-radius:50%; background:var(--bg); border:1px solid var(--border-hover); display:grid; place-items:center; font-size:13px; font-weight:700; color:var(--text); flex-shrink:0; }
+    .chat-head-name { font-size:14px; font-weight:700; color:var(--text); }
+    .chat-head-status { display:flex; align-items:center; gap:5px; font-size:12px; color:var(--green); margin-top:2px; }
+    .chat-head-status::before { content:""; width:6px; height:6px; border-radius:50%; background:var(--green); flex-shrink:0; }
+    .chat-msgs { padding:16px; display:flex; flex-direction:column; gap:10px; }
+    .cm { display:flex; opacity:0; animation:fadeInUp .4s ease both; }
+    .cm.bot { justify-content:flex-start; }
+    .cm.user { justify-content:flex-end; }
+    .cm-bubble { max-width:78%; padding:10px 14px; border-radius:12px; font-size:13px; line-height:1.55; color:var(--text); }
+    .cm.bot .cm-bubble { background:var(--bg); border:1px solid var(--border); border-bottom-left-radius:3px; }
+    .cm.user .cm-bubble { background:var(--border-hover); border-bottom-right-radius:3px; }
+    .cm:nth-child(1) { animation-delay:.6s; }
+    .cm:nth-child(2) { animation-delay:1.4s; }
+    .cm:nth-child(3) { animation-delay:2.2s; }
+    .cm:nth-child(4) { animation-delay:3.0s; }
+    .cm:nth-child(5) { animation-delay:3.8s; }
+    .typing-dots { display:flex; gap:4px; padding:10px 14px; background:var(--bg); border:1px solid var(--border); border-radius:12px; border-bottom-left-radius:3px; }
+    .typing-dot { width:6px; height:6px; border-radius:50%; background:var(--muted); animation:blink 1.4s infinite; }
+    .typing-dot:nth-child(2) { animation-delay:.22s; }
+    .typing-dot:nth-child(3) { animation-delay:.44s; }
+
+    /* SECTIONS */
+    .section { max-width:1240px; margin:0 auto; padding:80px 24px; border-top:1px solid var(--border); }
+    .section-label { text-align:center; font-size:13px; font-weight:600; color:var(--muted); letter-spacing:.06em; text-transform:uppercase; margin-bottom:12px; }
+    .section-title { text-align:center; font-size:clamp(26px,4vw,42px); font-weight:800; letter-spacing:-.04em; margin-bottom:12px; }
+    .section-sub { text-align:center; color:var(--muted); font-size:16px; margin-bottom:52px; }
+
+    /* SERVICES */
+    .services-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+    .service-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:28px 24px; display:flex; flex-direction:column; transition:border-color .2s; }
+    .service-card:hover { border-color:var(--border-hover); }
+    .service-icon { width:44px; height:44px; margin-bottom:18px; display:grid; place-items:center; }
+    .service-name { font-size:13px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); margin-bottom:8px; }
+    .service-price { font-size:30px; font-weight:800; letter-spacing:-.04em; margin-bottom:20px; }
+    .service-features { list-style:none; display:flex; flex-direction:column; gap:8px; flex:1; margin-bottom:24px; }
+    .service-features li { font-size:13px; color:var(--muted); display:flex; align-items:flex-start; gap:8px; }
+    .service-features li::before { content:"•"; color:var(--muted2); flex-shrink:0; }
+    .service-cta { display:flex; align-items:center; justify-content:space-between; padding:12px 0 0; border-top:1px solid var(--border); font-size:13px; font-weight:600; color:var(--muted); cursor:pointer; transition:color .2s; }
+    .service-cta:hover { color:var(--text); }
+
+    /* PROCESS */
+    .process-steps { display:grid; grid-template-columns:repeat(5,1fr); gap:0; position:relative; }
+    .process-steps::before { content:""; position:absolute; top:28px; left:calc(10% + 28px); right:calc(10% + 28px); height:1px; background:var(--border); }
+    .process-step { display:flex; flex-direction:column; align-items:center; text-align:center; padding:0 12px; }
+    .step-icon { width:56px; height:56px; background:var(--surface); border:1px solid var(--border-hover); border-radius:50%; display:grid; place-items:center; margin-bottom:18px; position:relative; z-index:1; flex-shrink:0; }
+    .step-num { font-size:12px; font-weight:700; color:var(--muted); margin-bottom:6px; }
+    .step-title { font-size:14px; font-weight:700; margin-bottom:6px; }
+    .step-desc { font-size:12px; color:var(--muted); line-height:1.5; }
+
+    /* FAQ */
+    .faq-grid { display:grid; grid-template-columns:1fr 1fr; gap:0 24px; }
+    .faq-item { border-bottom:1px solid var(--border); }
+    .faq-q { display:flex; justify-content:space-between; align-items:center; padding:20px 0; font-size:15px; font-weight:500; cursor:pointer; gap:16px; user-select:none; }
+    .faq-chevron { flex-shrink:0; width:20px; height:20px; display:grid; place-items:center; color:var(--muted); transition:transform .2s; }
+    .faq-item.open .faq-chevron { transform:rotate(180deg); }
+    .faq-a { font-size:14px; color:var(--muted); line-height:1.65; max-height:0; overflow:hidden; transition:max-height .3s ease,padding .3s; }
+    .faq-item.open .faq-a { max-height:200px; padding-bottom:18px; }
+
+    /* CTA */
+    .cta-banner { border-top:1px solid var(--border); }
+    .cta-inner { max-width:1240px; margin:0 auto; padding:72px 24px; display:grid; grid-template-columns:1fr 1fr; gap:56px; align-items:center; }
+    .cta-title { font-size:clamp(24px,3.5vw,38px); font-weight:800; letter-spacing:-.04em; line-height:1.1; margin-bottom:16px; }
+    .cta-desc { font-size:15px; color:var(--muted); line-height:1.6; }
+
+    /* CONTACT FORM */
+    .cf-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:28px 24px; }
+    .cf-field { margin-bottom:18px; }
+    .cf-label { display:block; font-size:13px; color:var(--muted); margin-bottom:7px; }
+    .cf-input, .cf-textarea { width:100%; background:var(--bg); border:1px solid var(--border); border-radius:9px; padding:11px 14px; font-size:14px; color:var(--text); font-family:inherit; outline:none; transition:border-color .2s; }
+    .cf-input:focus, .cf-textarea:focus { border-color:var(--border-hover); }
+    .cf-input::placeholder, .cf-textarea::placeholder { color:var(--muted2); }
+    .cf-textarea { resize:vertical; min-height:90px; }
+    .cf-btn { width:100%; padding:13px; border-radius:9px; background:var(--text); border:none; color:#000; font-size:15px; font-weight:700; cursor:pointer; transition:opacity .2s; font-family:inherit; }
+    .cf-btn:hover { opacity:.88; }
+    .cf-btn:disabled { opacity:.45; cursor:not-allowed; }
+    .cf-msg { margin-top:12px; font-size:13px; text-align:center; padding:10px; border-radius:8px; display:none; }
+    .cf-msg.ok { display:block; background:var(--green-bg); color:var(--green); }
+    .cf-msg.err { display:block; background:rgba(239,68,68,.12); color:#f87171; }
+
+    /* MODAL */
+    .modal-overlay { position:fixed; inset:0; z-index:999; background:rgba(0,0,0,.7); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; padding:24px; opacity:0; pointer-events:none; transition:opacity .25s; }
+    .modal-overlay.open { opacity:1; pointer-events:all; }
+    .modal-box { background:var(--surface); border:1px solid var(--border-hover); border-radius:20px; max-width:680px; width:100%; max-height:80vh; display:flex; flex-direction:column; transform:translateY(16px); transition:transform .25s; }
+    .modal-overlay.open .modal-box { transform:translateY(0); }
+    .modal-head { display:flex; align-items:center; justify-content:space-between; padding:22px 28px; border-bottom:1px solid var(--border); flex-shrink:0; }
+    .modal-title { font-size:17px; font-weight:700; letter-spacing:-.02em; }
+    .modal-close { width:32px; height:32px; border-radius:8px; background:transparent; border:1px solid var(--border); color:var(--muted); cursor:pointer; display:grid; place-items:center; transition:border-color .2s,color .2s; flex-shrink:0; }
+    .modal-close:hover { border-color:var(--border-hover); color:var(--text); }
+    .modal-body { padding:28px; overflow-y:auto; flex:1; }
+    .modal-body h3 { font-size:13px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin:24px 0 8px; }
+    .modal-body h3:first-child { margin-top:0; }
+    .modal-body p { font-size:14px; color:var(--muted); line-height:1.7; margin-bottom:8px; }
+    .modal-body p span.placeholder { color:var(--muted2); font-style:italic; }
+    .modal-updated { font-size:12px; color:var(--muted2); margin-top:24px; padding-top:16px; border-top:1px solid var(--border); }
+    .contact-options { display:flex; flex-direction:column; gap:12px; }
+    .contact-option { display:flex; align-items:center; gap:16px; padding:18px 20px; background:var(--bg); border:1px solid var(--border); border-radius:14px; cursor:pointer; text-decoration:none; color:var(--text); transition:border-color .2s,background .2s; }
+    .contact-option:hover { border-color:var(--border-hover); background:var(--surface2); }
+    .contact-option-icon { width:44px; height:44px; border-radius:10px; display:grid; place-items:center; flex-shrink:0; }
+    .contact-option-info { display:flex; flex-direction:column; gap:3px; }
+    .contact-option-label { font-size:13px; color:var(--muted); }
+    .contact-option-value { font-size:15px; font-weight:600; }
+
+    /* FOOTER */
+    footer { border-top:1px solid var(--border); }
+    .footer-main { max-width:1240px; margin:0 auto; padding:56px 24px 40px; display:grid; grid-template-columns:1fr 1fr 200px; gap:40px; }
+    .footer-col-title { font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-bottom:18px; }
+    .footer-links { list-style:none; display:flex; flex-direction:column; gap:10px; }
+    .footer-links a { font-size:14px; color:var(--muted); transition:color .2s; }
+    .footer-links a:hover { color:var(--text); }
+    .footer-brand .logo { margin-bottom:12px; }
+    .footer-brand-desc { font-size:13px; color:var(--muted); line-height:1.6; margin-bottom:20px; }
+    .footer-socials { display:flex; gap:10px; }
+    .social-btn { width:34px; height:34px; border-radius:8px; background:var(--surface); border:1px solid var(--border); display:grid; place-items:center; transition:border-color .2s; }
+    .social-btn:hover { border-color:var(--border-hover); }
+    .footer-bottom { max-width:1240px; margin:0 auto; padding:18px 24px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; }
+    .footer-bottom-left { display:flex; align-items:center; gap:24px; flex-wrap:wrap; }
+    .footer-contact { display:flex; align-items:center; gap:7px; font-size:13px; color:var(--muted); }
+    .footer-contact svg { opacity:.6; flex-shrink:0; }
+    .footer-copy { font-size:13px; color:var(--muted2); }
+    .footer-bottom-right { display:flex; gap:24px; }
+    .footer-bottom-right a { font-size:13px; color:var(--muted2); transition:color .2s; }
+    .footer-bottom-right a:hover { color:var(--muted); }
+
+    /* RESPONSIVE */
+    @media (max-width:1024px) {
+      .services-grid { grid-template-columns:repeat(2,1fr); }
+      .process-steps { grid-template-columns:repeat(3,1fr); gap:24px; }
+      .process-steps::before { display:none; }
+      .footer-main { grid-template-columns:1fr 1fr; }
+    }
+    @media (max-width:768px) {
+      .nav-links { display:none; }
+      .hero-cols { grid-template-columns:1fr; }
+      .chat-widget { display:none; }
+      .hero-metrics { gap:16px; }
+      .services-grid { grid-template-columns:1fr; }
+      .faq-grid { grid-template-columns:1fr; }
+      .cta-inner { grid-template-columns:1fr; }
+      .cta-inner { grid-template-columns:1fr; }
+      .footer-main { grid-template-columns:1fr 1fr; }
+      .process-steps { grid-template-columns:1fr 1fr; }
+    }
+    @media (max-width:520px) {
+      .nav-actions .btn-outline { display:none; }
+      .footer-main { grid-template-columns:1fr; }
+      .process-steps { grid-template-columns:1fr; }
+      .footer-bottom { flex-direction:column; align-items:flex-start; gap:12px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<header>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="#" class="logo">
+        <svg width="22" height="22" viewBox="0 0 28 28" fill="none"><path d="M14 2L16.5 11.5L26 14L16.5 16.5L14 26L11.5 16.5L2 14L11.5 11.5L14 2Z" fill="white"/></svg>
+        LUMEO AI
+      </a>
+      <ul class="nav-links">
+        <li><a href="#services" data-i18n="nav.services"></a></li>
+        <li><a href="#process" data-i18n="nav.howwork"></a></li>
+        <li><a href="#faq" data-i18n="nav.faq"></a></li>
+        <li><a href="#footer" data-i18n="nav.contacts"></a></li>
+      </ul>
+      <div class="nav-actions">
+        <div class="lang-switch">
+          <button class="lang-btn active" onclick="setLang('ru')">RU</button>
+          <button class="lang-btn" onclick="setLang('lv')">LV</button>
+          <button class="lang-btn" onclick="setLang('en')">EN</button>
+        </div>
+        <a href="https://t.me/Orbitaru7" class="btn btn-outline">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+          <span data-i18n="nav.telegram"></span>
+        </a>
+        <a href="#services" class="btn btn-solid" data-i18n="nav.order"></a>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<!-- HERO -->
+<div class="hero-wrap">
+  <div class="hero">
+    <div class="hero-badge">
+      <span class="hero-badge-dot"></span>
+      <span data-i18n="hero.badge"></span>
+    </div>
+    <div class="hero-cols">
+      <div>
+        <h1 class="hero-title" data-i18n-html="hero.title"></h1>
+        <p class="hero-desc" data-i18n="hero.desc"></p>
+        <div class="hero-actions">
+          <a href="https://t.me/Orbitaru7" class="btn btn-outline">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+            <span data-i18n="hero.btn1"></span>
+          </a>
+          <a href="#services" class="btn btn-outline" data-i18n="hero.btn2"></a>
+        </div>
+        <div class="hero-metrics">
+          <div class="metric">
+            <div class="metric-icon">🕐</div>
+            <div class="metric-text"><b data-i18n="hero.m1v"></b><span data-i18n="hero.m1d"></span></div>
+          </div>
+          <div class="metric">
+            <div class="metric-icon">📉</div>
+            <div class="metric-text"><b data-i18n="hero.m2v"></b><span data-i18n="hero.m2d"></span></div>
+          </div>
+          <div class="metric">
+            <div class="metric-icon">📈</div>
+            <div class="metric-text"><b data-i18n="hero.m3v"></b><span data-i18n="hero.m3d"></span></div>
+          </div>
+          <div class="metric">
+            <div class="metric-icon">✓</div>
+            <div class="metric-text"><b data-i18n="hero.m4v"></b><span data-i18n="hero.m4d"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Animated chat widget -->
+      <div class="chat-widget">
+        <div class="chat-box">
+          <div class="chat-head">
+            <div class="chat-avatar">L</div>
+            <div>
+              <div class="chat-head-name">Lumeo Bot</div>
+              <div class="chat-head-status" data-i18n="chat.status"></div>
+            </div>
+          </div>
+          <div class="chat-msgs">
+            <div class="cm user"><div class="cm-bubble" data-i18n="chat.m1"></div></div>
+            <div class="cm bot"><div class="cm-bubble" data-i18n="chat.m2"></div></div>
+            <div class="cm user"><div class="cm-bubble" data-i18n="chat.m3"></div></div>
+            <div class="cm bot"><div class="cm-bubble" data-i18n="chat.m4"></div></div>
+            <div class="cm bot">
+              <div class="typing-dots">
+                <span class="typing-dot"></span>
+                <span class="typing-dot"></span>
+                <span class="typing-dot"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SERVICES -->
+<section class="section" id="services">
+  <div class="section-label" data-i18n="svc.label"></div>
+  <h2 class="section-title" data-i18n="svc.title"></h2>
+  <div class="services-grid">
+
+    <div class="service-card">
+      <div class="service-icon">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="6" fill="#2AABEE" opacity=".15"/><path d="M11.944 4A8 8 0 0 0 4 12a8 8 0 0 0 8 8 8 8 0 0 0 8-8A8 8 0 0 0 12 4a8 8 0 0 0-.056 0zm3.308 5.65c.066-.002.215.016.31.093a.338.338 0 0 1 .115.217c.01.062.024.204.013.314-.12 1.266-.641 4.335-.907 5.752-.112.6-.333.8-.547.82-.464.043-.816-.307-1.267-.601-.703-.462-1.102-.749-1.785-1.2-.79-.52-.278-.807.172-1.273.118-.123 2.165-1.985 2.205-2.154.005-.021.009-.1-.037-.14-.047-.042-.116-.027-.166-.016-.071.016-1.196.76-3.375 2.23-.32.22-.608.327-.868.32-.286-.006-.834-.161-1.244-.293-.502-.164-.9-.25-.865-.526.018-.144.217-.291.596-.442 2.332-1.016 3.887-1.686 4.665-2.009 2.222-.924 2.683-1.085 2.984-1.09z" fill="#2AABEE"/></svg>
+      </div>
+      <div class="service-name" data-i18n="svc.c1.name"></div>
+      <div class="service-price" data-i18n="svc.c1.price"></div>
+      <ul class="service-features">
+        <li data-i18n="svc.c1.f1"></li>
+        <li data-i18n="svc.c1.f2"></li>
+        <li data-i18n="svc.c1.f3"></li>
+        <li data-i18n="svc.c1.f4"></li>
+      </ul>
+      <a href="https://t.me/Orbitaru7" class="service-cta"><span data-i18n="svc.cta"></span> <span>→</span></a>
+    </div>
+
+    <div class="service-card">
+      <div class="service-icon">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="6" fill="#25D366" opacity=".15"/><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" fill="#25D366"/></svg>
+      </div>
+      <div class="service-name" data-i18n="svc.c2.name"></div>
+      <div class="service-price" data-i18n="svc.c2.price"></div>
+      <ul class="service-features">
+        <li data-i18n="svc.c2.f1"></li>
+        <li data-i18n="svc.c2.f2"></li>
+        <li data-i18n="svc.c2.f3"></li>
+        <li data-i18n="svc.c2.f4"></li>
+      </ul>
+      <a href="https://t.me/Orbitaru7" class="service-cta"><span data-i18n="svc.cta"></span> <span>→</span></a>
+    </div>
+
+    <div class="service-card">
+      <div class="service-icon" style="display:flex;gap:4px;align-items:center;">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="6" fill="#2AABEE" opacity=".15"/><path d="M11.944 4A8 8 0 0 0 4 12a8 8 0 0 0 8 8 8 8 0 0 0 8-8A8 8 0 0 0 12 4zm3.308 5.65c-.066-.002-.215.016-.31.093a.338.338 0 0 0-.115.217c-.01.062-.024.204-.013.314.12 1.266.641 4.335.907 5.752.112.6.333.8.547.82.464.043.816-.307 1.267-.601.703-.462 1.102-.749 1.785-1.2.79-.52.278-.807-.172-1.273-.118-.123-2.165-1.985-2.205-2.154-.005-.021-.009-.1.037-.14.047-.042.116-.027.166-.016.071.016 1.196.76 3.375 2.23.32.22.608.327.868.32.286-.006.834-.161 1.244-.293.502-.164.9-.25.865-.526-.018-.144-.217-.291-.596-.442-2.332-1.016-3.887-1.686-4.665-2.009-2.222-.924-2.683-1.085-2.984-1.09z" fill="#2AABEE"/></svg>
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="6" fill="#25D366" opacity=".15"/><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z" fill="#25D366"/></svg>
+      </div>
+      <div class="service-name" data-i18n="svc.c3.name"></div>
+      <div class="service-price" data-i18n="svc.c3.price"></div>
+      <ul class="service-features">
+        <li data-i18n="svc.c3.f1"></li>
+        <li data-i18n="svc.c3.f2"></li>
+        <li data-i18n="svc.c3.f3"></li>
+        <li data-i18n="svc.c3.f4"></li>
+      </ul>
+      <a href="https://t.me/Orbitaru7" class="service-cta"><span data-i18n="svc.cta"></span> <span>→</span></a>
+    </div>
+
+    <div class="service-card">
+      <div class="service-icon">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="6" fill="rgba(255,255,255,.08)"/><circle cx="12" cy="10" r="2.5" stroke="white" stroke-width="1.4" fill="none"/><path d="M7 20c0-2.76 2.24-5 5-5s5 2.24 5 5" stroke="white" stroke-width="1.4" fill="none" stroke-linecap="round"/><path d="M16 6l2-2m-2 2 2 2" stroke="white" stroke-width="1.4" stroke-linecap="round"/></svg>
+      </div>
+      <div class="service-name" data-i18n="svc.c4.name"></div>
+      <div class="service-price" data-i18n="svc.c4.price"></div>
+      <ul class="service-features">
+        <li data-i18n="svc.c4.f1"></li>
+        <li data-i18n="svc.c4.f2"></li>
+        <li data-i18n="svc.c4.f3"></li>
+        <li data-i18n="svc.c4.f4"></li>
+      </ul>
+      <a href="https://t.me/Orbitaru7" class="service-cta"><span data-i18n="svc.cta"></span> <span>→</span></a>
+    </div>
+
+  </div>
+</section>
+
+<!-- PROCESS -->
+<section class="section" id="process">
+  <div class="section-label" data-i18n="proc.label"></div>
+  <h2 class="section-title" data-i18n="proc.title"></h2>
+  <div class="section-sub"></div>
+  <div class="process-steps">
+    <div class="process-step">
+      <div class="step-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+      <div class="step-num" data-i18n="proc.s1.num"></div>
+      <div class="step-title" data-i18n="proc.s1.title"></div>
+      <div class="step-desc" data-i18n="proc.s1.desc"></div>
+    </div>
+    <div class="process-step">
+      <div class="step-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="14" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg></div>
+      <div class="step-num" data-i18n="proc.s2.num"></div>
+      <div class="step-title" data-i18n="proc.s2.title"></div>
+      <div class="step-desc" data-i18n="proc.s2.desc"></div>
+    </div>
+    <div class="process-step">
+      <div class="step-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>
+      <div class="step-num" data-i18n="proc.s3.num"></div>
+      <div class="step-title" data-i18n="proc.s3.title"></div>
+      <div class="step-desc" data-i18n="proc.s3.desc"></div>
+    </div>
+    <div class="process-step">
+      <div class="step-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+      <div class="step-num" data-i18n="proc.s4.num"></div>
+      <div class="step-title" data-i18n="proc.s4.title"></div>
+      <div class="step-desc" data-i18n="proc.s4.desc"></div>
+    </div>
+    <div class="process-step">
+      <div class="step-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="2"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg></div>
+      <div class="step-num" data-i18n="proc.s5.num"></div>
+      <div class="step-title" data-i18n="proc.s5.title"></div>
+      <div class="step-desc" data-i18n="proc.s5.desc"></div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section" id="faq">
+  <div class="section-label" data-i18n="faq.label"></div>
+  <h2 class="section-title" data-i18n="faq.title"></h2>
+  <div class="faq-grid">
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)"><span data-i18n="faq.q1"></span><span class="faq-chevron"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span></div>
+      <div class="faq-a" data-i18n="faq.a1"></div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)"><span data-i18n="faq.q2"></span><span class="faq-chevron"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span></div>
+      <div class="faq-a" data-i18n="faq.a2"></div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)"><span data-i18n="faq.q3"></span><span class="faq-chevron"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span></div>
+      <div class="faq-a" data-i18n="faq.a3"></div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)"><span data-i18n="faq.q4"></span><span class="faq-chevron"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span></div>
+      <div class="faq-a" data-i18n="faq.a4"></div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)"><span data-i18n="faq.q5"></span><span class="faq-chevron"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span></div>
+      <div class="faq-a" data-i18n="faq.a5"></div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)"><span data-i18n="faq.q6"></span><span class="faq-chevron"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span></div>
+      <div class="faq-a" data-i18n="faq.a6"></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta-banner">
+  <div class="cta-inner">
+    <div>
+      <h2 class="cta-title" data-i18n="cta.title"></h2>
+      <p class="cta-desc" data-i18n="cta.desc"></p>
+    </div>
+    <div class="cf-card">
+      <form id="contactForm" onsubmit="submitForm(event)">
+        <div class="cf-field">
+          <label class="cf-label" data-i18n="cf.name"></label>
+          <input class="cf-input" type="text" id="cf-name" data-i18n-placeholder="cf.name.ph" required />
+        </div>
+        <div class="cf-field">
+          <label class="cf-label" data-i18n="cf.contact"></label>
+          <input class="cf-input" type="text" id="cf-contact" data-i18n-placeholder="cf.contact.ph" required />
+        </div>
+        <div class="cf-field" style="margin-bottom:20px;">
+          <label class="cf-label" data-i18n="cf.msg"></label>
+          <textarea class="cf-textarea" id="cf-msg" data-i18n-placeholder="cf.msg.ph"></textarea>
+        </div>
+        <button class="cf-btn" type="submit" id="cf-submit" data-i18n="cf.btn"></button>
+        <div class="cf-msg" id="cf-result"></div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer id="footer">
+  <div class="footer-main">
+    <div>
+      <div class="footer-col-title" data-i18n="ft.product"></div>
+      <ul class="footer-links">
+        <li><a href="#" data-i18n="ft.p2"></a></li>
+        <li><a href="#" data-i18n="ft.p3"></a></li>
+        <li><a href="#" data-i18n="ft.p4"></a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title" data-i18n="ft.support"></div>
+      <ul class="footer-links">
+        <li><a href="#" data-i18n="ft.s1"></a></li>
+        <li><a href="#" onclick="openModal('modal-help');return false;" data-i18n="ft.s2"></a></li>
+        <li><a href="https://lumeo-ai.betteruptime.com" target="_blank" data-i18n="ft.s3"></a></li>
+        <li><a href="#" onclick="openModal('modal-contact');return false;" data-i18n="ft.s4"></a></li>
+      </ul>
+    </div>
+    <div class="footer-brand">
+      <div class="logo" style="margin-bottom:12px;">
+        <svg width="20" height="20" viewBox="0 0 28 28" fill="none"><path d="M14 2L16.5 11.5L26 14L16.5 16.5L14 26L11.5 16.5L2 14L11.5 11.5L14 2Z" fill="white"/></svg>
+        LUMEO AI
+      </div>
+      <p class="footer-brand-desc" data-i18n="ft.desc"></p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="footer-bottom-left">
+      <span class="footer-copy" data-i18n="ft.copy"></span>
+      <span class="footer-contact">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.22 1.2 2 2 0 012.22 0h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.08 6.08l1.27-.56a2 2 0 012.11.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+        @Orbitaru7
+      </span>
+      <span class="footer-contact">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        hello@lumeo.ai
+      </span>
+      <span class="footer-contact">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.22 1.2 2 2 0 012.22 0h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.08 6.08l1.27-.56a2 2 0 012.11.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+        +371 26271666
+      </span>
+    </div>
+    <div class="footer-bottom-right">
+      <a href="#" onclick="openModal('modal-privacy');return false;" data-i18n="ft.privacy"></a>
+      <a href="#" onclick="openModal('modal-terms');return false;" data-i18n="ft.terms"></a>
+    </div>
+  </div>
+</footer>
+
+<!-- MODAL: Contact -->
+<div class="modal-overlay" id="modal-contact" onclick="closeModalOutside(event,'modal-contact')">
+  <div class="modal-box" style="max-width:440px;">
+    <div class="modal-head">
+      <div class="modal-title" id="mc-title"></div>
+      <button class="modal-close" onclick="closeModal('modal-contact')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="contact-options">
+        <a href="https://t.me/Orbitaru7" target="_blank" class="contact-option">
+          <div class="contact-option-icon" style="background:rgba(42,171,238,.12);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="#2AABEE"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+          </div>
+          <div class="contact-option-info">
+            <span class="contact-option-label" id="mc-tg-label"></span>
+            <span class="contact-option-value">@Orbitaru7</span>
+          </div>
+        </a>
+        <a href="mailto:hello@lumeo.ai" class="contact-option">
+          <div class="contact-option-icon" style="background:rgba(255,255,255,.06);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </div>
+          <div class="contact-option-info">
+            <span class="contact-option-label" id="mc-email-label"></span>
+            <span class="contact-option-value">hello@lumeo.ai</span>
+          </div>
+        </a>
+        <a href="tel:+37126271666" class="contact-option">
+          <div class="contact-option-icon" style="background:rgba(34,197,94,.12);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.22 1.2 2 2 0 012.22 0h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.08 6.08l1.27-.56a2 2 0 012.11.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+          </div>
+          <div class="contact-option-info">
+            <span class="contact-option-label" id="mc-phone-label"></span>
+            <span class="contact-option-value">+371 26271666</span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Help Center -->
+<div class="modal-overlay" id="modal-help" onclick="closeModalOutside(event,'modal-help')">
+  <div class="modal-box" style="max-width:500px;">
+    <div class="modal-head">
+      <div class="modal-title" id="mh-title"></div>
+      <button class="modal-close" onclick="closeModal('modal-help')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form id="helpForm" onsubmit="submitHelpForm(event)">
+        <div class="cf-field">
+          <label class="cf-label" id="mh-label-name"></label>
+          <input class="cf-input" type="text" id="hf-name" required />
+        </div>
+        <div class="cf-field">
+          <label class="cf-label" id="mh-label-contact"></label>
+          <input class="cf-input" type="text" id="hf-contact" required />
+        </div>
+        <div class="cf-field" style="margin-bottom:20px;">
+          <label class="cf-label" id="mh-label-msg"></label>
+          <textarea class="cf-textarea" id="hf-msg"></textarea>
+        </div>
+        <button class="cf-btn" type="submit" id="hf-submit"></button>
+        <div class="cf-msg" id="hf-result"></div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Privacy Policy -->
+<div class="modal-overlay" id="modal-privacy" onclick="closeModalOutside(event,'modal-privacy')">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div class="modal-title" id="mp-title"></div>
+      <button class="modal-close" onclick="closeModal('modal-privacy')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="mp-body"></div>
+  </div>
+</div>
+
+<!-- MODAL: Terms of Use -->
+<div class="modal-overlay" id="modal-terms" onclick="closeModalOutside(event,'modal-terms')">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div class="modal-title" id="mt-title"></div>
+      <button class="modal-close" onclick="closeModal('modal-terms')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="mt-body"></div>
+  </div>
+</div>
+
+<script>
+const T = {
+  ru: {
+    "nav.benefits":"Преимущества","nav.services":"Услуги","nav.howwork":"Как работаем","nav.faq":"FAQ","nav.contacts":"Контакты",
+    "nav.telegram":"Связаться в Telegram","nav.order":"Заказать бота →",
+    "hero.badge":"AI-Автоматизация для бизнеса",
+    "hero.title":"AI-БОТЫ ДЛЯ БИЗНЕСА <span class=\"accent\">24/7</span><br>В TELEGRAM И WHATSAPP",
+    "hero.desc":"Автоматизируйте продажи, поддержку и процессы с помощью интеллектуальных ботов от Lumeo AI. Экономьте время, снижайте издержки и масштабируйте бизнес быстрее.",
+    "hero.btn1":"Связаться в Telegram","hero.btn2":"Посмотреть услуги →",
+    "hero.m1v":"24/7","hero.m1d":"Без выходных и перерывов",
+    "hero.m2v":"До 70%","hero.m2d":"Снижение операционных затрат",
+    "hero.m3v":"x3","hero.m3d":"Больше лидов и конверсий",
+    "hero.m4v":"100%","hero.m4d":"Контроль качества и данных",
+    "chat.status":"онлайн · отвечает мгновенно",
+    "chat.m1":"Здравствуйте! Можно записаться на завтра?",
+    "chat.m2":"Здравствуйте! Да, свободно 11:00 и 15:00. Какое время удобнее?",
+    "chat.m3":"Давайте на 15:00",
+    "chat.m4":"Готово ✅ Записал вас на 15:00. Прислать напоминание за час?",
+    "svc.label":"Наши услуги","svc.title":"Выберите решение для вашего бизнеса","svc.cta":"Заказать бота",
+    "svc.c1.name":"Telegram AI-Bot","svc.c1.price":"от 50€",
+    "svc.c1.f1":"Автоответы и консультации","svc.c1.f2":"Приём заявок и заказов","svc.c1.f3":"Интеграция с CRM","svc.c1.f4":"Аналитика и отчёты",
+    "svc.c2.name":"WhatsApp AI-Bot","svc.c2.price":"от 70€",
+    "svc.c2.f1":"Автоответы и поддержка","svc.c2.f2":"Работа с клиентами 24/7","svc.c2.f3":"Интеграция с CRM","svc.c2.f4":"Аналитика и отчёты",
+    "svc.c3.name":"Telegram + WhatsApp","svc.c3.price":"от 100€",
+    "svc.c3.f1":"Боты в двух мессенджерах","svc.c3.f2":"Единая база и аналитика","svc.c3.f3":"Интеграция с CRM","svc.c3.f4":"Приоритетная поддержка",
+    "svc.c4.name":"Индивидуальный AI-Bot","svc.c4.price":"от 150€",
+    "svc.c4.f1":"Уникальный функционал","svc.c4.f2":"Интеграции и API","svc.c4.f3":"Персональный сценарий","svc.c4.f4":"Полное сопровождение",
+    "proc.label":"Как мы работаем","proc.title":"Прозрачный процесс от идеи до результата",
+    "proc.s1.num":"01. Заявка","proc.s1.title":"Заявка","proc.s1.desc":"Вы оставляете заявку на сайте или в Telegram",
+    "proc.s2.num":"02. Анализ","proc.s2.title":"Анализ","proc.s2.desc":"Мы анализируем ваш бизнес и задачи",
+    "proc.s3.num":"03. Разработка","proc.s3.title":"Разработка","proc.s3.desc":"Создаём бота и настраиваем под ваши процессы",
+    "proc.s4.num":"04. Тестирование","proc.s4.title":"Тестирование","proc.s4.desc":"Проводим тесты и оптимизируем работу",
+    "proc.s5.num":"05. Запуск","proc.s5.title":"Запуск","proc.s5.desc":"Запускаем бота и поддерживаем результат",
+    "faq.label":"FAQ","faq.title":"Часто задаваемые вопросы",
+    "faq.q1":"Сколько времени занимает запуск бота?","faq.a1":"От 3 до 7 рабочих дней в зависимости от сложности задачи и интеграций. Простые боты с базовыми функциями запускаются за 2–3 дня.",
+    "faq.q2":"Можно ли адаптировать бота под наш бизнес?","faq.a2":"Да, каждый бот настраивается индивидуально: сценарии диалогов, тон общения, ответы на специфические вопросы вашей сферы.",
+    "faq.q3":"Нужны ли технические знания для работы с ботом?","faq.a3":"Нет. После запуска вы управляете ботом через понятный интерфейс. Мы также проводим обучение и поддерживаем вас.",
+    "faq.q4":"Как обеспечивается безопасность данных?","faq.a4":"Все данные хранятся на защищённых серверах с шифрованием. Мы не передаём данные третьим лицам. Работаем в соответствии с GDPR.",
+    "faq.q5":"С какими сервисами и CRM вы интегрируетесь?","faq.a5":"Google Sheets, Airtable, Bitrix24, amoCRM, Notion, Zapier, Make и любые сервисы с API.",
+    "faq.q6":"Есть ли тестовый период?","faq.a6":"Да. Перед оплатой мы показываем демо вашего будущего бота. Работаем без предоплаты на старте.",
+    "cta.title":"ГОТОВЫ АВТОМАТИЗИРОВАТЬ ВАШ БИЗНЕС?","cta.desc":"Оставьте заявку — подберём лучшее решение и запустим бота под ваши задачи.",
+    "cf.name":"Имя","cf.name.ph":"Как к вам обращаться",
+    "cf.contact":"Telegram, телефон или e-mail","cf.contact.ph":"@username или +371...",
+    "cf.msg":"Сообщение","cf.msg.ph":"Коротко о вашем бизнесе и задаче",
+    "cf.btn":"Получить бесплатную демонстрацию",
+    "cf.ok":"Заявка отправлена! Мы свяжемся с вами в ближайшее время.","cf.err":"Ошибка отправки. Попробуйте ещё раз.",
+    "ft.product":"Продукт","ft.p1":"Преимущества","ft.p2":"Как работает AI","ft.p3":"Возможности","ft.p4":"Технологии",
+    "ft.support":"Поддержка","ft.s1":"Документация","ft.s2":"Центр помощи","ft.s3":"Статус сервиса","ft.s4":"Связаться с нами",
+    "ft.desc":"AI-боты для бизнеса, которые работают на результат.",
+    "ft.copy":"© 2026 Lumeo AI. Все права защищены.",
+    "ft.privacy":"Политика конфиденциальности","ft.terms":"Пользовательское соглашение"
+  },
+  lv: {
+    "nav.benefits":"Priekšrocības","nav.services":"Pakalpojumi","nav.howwork":"Kā strādājam","nav.faq":"BUJ","nav.contacts":"Kontakti",
+    "nav.telegram":"Sazināties Telegram","nav.order":"Pasūtīt botu →",
+    "hero.badge":"AI-Automatizācija biznesam",
+    "hero.title":"AI-BOTI BIZNESAM <span class=\"accent\">24/7</span><br>TELEGRAM UN WHATSAPP",
+    "hero.desc":"Automatizējiet pārdošanu, atbalstu un procesus ar Lumeo AI inteliģentajiem botiem. Ietaupiet laiku, samaziniet izmaksas un attīstiet biznesu ātrāk.",
+    "hero.btn1":"Sazināties Telegram","hero.btn2":"Skatīt pakalpojumus →",
+    "hero.m1v":"24/7","hero.m1d":"Bez brīvdienām un pārtraukumiem",
+    "hero.m2v":"Līdz 70%","hero.m2d":"Izmaksu samazinājums",
+    "hero.m3v":"x3","hero.m3d":"Vairāk pirkumu un konversiju",
+    "hero.m4v":"100%","hero.m4d":"Kvalitātes un datu kontrole",
+    "chat.status":"tiešsaistē · atbild uzreiz",
+    "chat.m1":"Sveiki! Vai var pierakstīties uz rītdienu?",
+    "chat.m2":"Sveiki! Jā, brīvi 11:00 un 15:00. Kurš laiks ērtāks?",
+    "chat.m3":"Lūdzu uz 15:00",
+    "chat.m4":"Gatavs ✅ Ierakstīju uz 15:00. Nosūtīt atgādinājumu stundu iepriekš?",
+    "svc.label":"Mūsu pakalpojumi","svc.title":"Izvēlieties risinājumu savam biznesam","svc.cta":"Pasūtīt botu",
+    "svc.c1.name":"Telegram AI-Bot","svc.c1.price":"no 50€",
+    "svc.c1.f1":"Automātiskie atbildi un konsultācijas","svc.c1.f2":"Pieteikumu un pasūtījumu pieņemšana","svc.c1.f3":"CRM integrācija","svc.c1.f4":"Analītika un atskaites",
+    "svc.c2.name":"WhatsApp AI-Bot","svc.c2.price":"no 70€",
+    "svc.c2.f1":"Automātiskie atbildi un atbalsts","svc.c2.f2":"Darbs ar klientiem 24/7","svc.c2.f3":"CRM integrācija","svc.c2.f4":"Analītika un atskaites",
+    "svc.c3.name":"Telegram + WhatsApp","svc.c3.price":"no 100€",
+    "svc.c3.f1":"Boti divos kurjeros","svc.c3.f2":"Vienota bāze un analītika","svc.c3.f3":"CRM integrācija","svc.c3.f4":"Prioritārs atbalsts",
+    "svc.c4.name":"Individuāls AI-Bot","svc.c4.price":"no 150€",
+    "svc.c4.f1":"Unikāls funkcionalitāte","svc.c4.f2":"Integrācijas un API","svc.c4.f3":"Personīgs scenārijs","svc.c4.f4":"Pilns atbalsts",
+    "proc.label":"Kā mēs strādājam","proc.title":"Caurspīdīgs process no idejas līdz rezultātam",
+    "proc.s1.num":"01. Pieteikums","proc.s1.title":"Pieteikums","proc.s1.desc":"Jūs atstājat pieteikumu vietnē vai Telegram",
+    "proc.s2.num":"02. Analīze","proc.s2.title":"Analīze","proc.s2.desc":"Mēs analizējam jūsu biznesu un uzdevumus",
+    "proc.s3.num":"03. Izstrāde","proc.s3.title":"Izstrāde","proc.s3.desc":"Izveidojam botu un pielāgojam jūsu procesiem",
+    "proc.s4.num":"04. Testēšana","proc.s4.title":"Testēšana","proc.s4.desc":"Veicam testus un optimizējam darbu",
+    "proc.s5.num":"05. Palaišana","proc.s5.title":"Palaišana","proc.s5.desc":"Palaižam botu un uzturams rezultātu",
+    "faq.label":"BUJ","faq.title":"Bieži uzdotie jautājumi",
+    "faq.q1":"Cik ilgs laiks nepieciešams bota palaišanai?","faq.a1":"No 3 līdz 7 darba dienām atkarībā no uzdevuma sarežģītības. Vienkārši boti ar pamata funkcijām tiek palaisti 2–3 dienās.",
+    "faq.q2":"Vai botu var pielāgot mūsu biznesam?","faq.a2":"Jā, katrs bots tiek konfigurēts individuāli: dialoga scenāriji, saziņas tonis, atbildes uz jūsu sfēras specifiskiem jautājumiem.",
+    "faq.q3":"Vai ir nepieciešamas tehniskas zināšanas?","faq.a3":"Nē. Pēc palaišanas jūs pārvaldāt botu caur saprotamu interfeisu. Mēs arī veicam apmācību un atbalstām jūs.",
+    "faq.q4":"Kā tiek nodrošināta datu drošība?","faq.a4":"Visi dati tiek glabāti drošos serveros ar šifrēšanu. Mēs nenododam datus trešajām personām. Strādājam atbilstoši GDPR.",
+    "faq.q5":"Ar kādiem pakalpojumiem un CRM jūs integrējaties?","faq.a5":"Google Sheets, Airtable, Bitrix24, amoCRM, Notion, Zapier, Make un jebkuri pakalpojumi ar API.",
+    "faq.q6":"Vai ir izmēģinājuma periods?","faq.a6":"Jā. Pirms apmaksas mēs parādām jūsu nākamā bota demo. Strādājam bez priekšapmaksas sākumā.",
+    "cta.title":"GATAVI AUTOMATIZĒT SAVU BIZNESU?","cta.desc":"Atstājiet pieteikumu — atlasīsim labāko risinājumu un palaidīsim botu jūsu uzdevumiem.",
+    "cf.name":"Vārds","cf.name.ph":"Kā pie jums uzrunāt",
+    "cf.contact":"Telegram, tālrunis vai e-pasts","cf.contact.ph":"@username vai +371...",
+    "cf.msg":"Ziņojums","cf.msg.ph":"Īsi par jūsu biznesu un uzdevumu",
+    "cf.btn":"Saņemt bezmaksas demonstrāciju",
+    "cf.ok":"Pieteikums nosūtīts! Mēs ar jums sazināsimies tuvākajā laikā.","cf.err":"Nosūtīšanas kļūda. Mēģiniet vēlreiz.",
+    "ft.product":"Produkts","ft.p1":"Priekšrocības","ft.p2":"Kā darbojas AI","ft.p3":"Iespējas","ft.p4":"Tehnoloģijas",
+    "ft.support":"Atbalsts","ft.s1":"Dokumentācija","ft.s2":"Palīdzības centrs","ft.s3":"Servisa statuss","ft.s4":"Sazināties ar mums",
+    "ft.desc":"AI boti biznesam, kas strādā uz rezultātu.",
+    "ft.copy":"© 2026 Lumeo AI. Visas tiesības aizsargātas.",
+    "ft.privacy":"Privātuma politika","ft.terms":"Lietošanas noteikumi"
+  },
+  en: {
+    "nav.benefits":"Benefits","nav.services":"Services","nav.howwork":"How We Work","nav.faq":"FAQ","nav.contacts":"Contacts",
+    "nav.telegram":"Contact via Telegram","nav.order":"Order a bot →",
+    "hero.badge":"AI Automation for Business",
+    "hero.title":"AI BOTS FOR BUSINESS <span class=\"accent\">24/7</span><br>IN TELEGRAM AND WHATSAPP",
+    "hero.desc":"Automate sales, support and processes with Lumeo AI intelligent bots. Save time, reduce costs and scale your business faster.",
+    "hero.btn1":"Contact via Telegram","hero.btn2":"View services →",
+    "hero.m1v":"24/7","hero.m1d":"No days off or breaks",
+    "hero.m2v":"Up to 70%","hero.m2d":"Reduction in operating costs",
+    "hero.m3v":"x3","hero.m3d":"More leads and conversions",
+    "hero.m4v":"100%","hero.m4d":"Quality and data control",
+    "chat.status":"online · replies instantly",
+    "chat.m1":"Hello! Can I book an appointment for tomorrow?",
+    "chat.m2":"Hello! Yes, available at 11:00 and 15:00. Which time works best?",
+    "chat.m3":"Let's go with 15:00",
+    "chat.m4":"Done ✅ Booked you in for 15:00. Send a reminder an hour before?",
+    "svc.label":"Our Services","svc.title":"Choose a solution for your business","svc.cta":"Order a bot",
+    "svc.c1.name":"Telegram AI-Bot","svc.c1.price":"from 50€",
+    "svc.c1.f1":"Auto-replies and consultations","svc.c1.f2":"Lead and order intake","svc.c1.f3":"CRM integration","svc.c1.f4":"Analytics and reports",
+    "svc.c2.name":"WhatsApp AI-Bot","svc.c2.price":"from 70€",
+    "svc.c2.f1":"Auto-replies and support","svc.c2.f2":"Customer service 24/7","svc.c2.f3":"CRM integration","svc.c2.f4":"Analytics and reports",
+    "svc.c3.name":"Telegram + WhatsApp","svc.c3.price":"from 100€",
+    "svc.c3.f1":"Bots in two messengers","svc.c3.f2":"Unified database and analytics","svc.c3.f3":"CRM integration","svc.c3.f4":"Priority support",
+    "svc.c4.name":"Custom AI-Bot","svc.c4.price":"from 150€",
+    "svc.c4.f1":"Unique functionality","svc.c4.f2":"Integrations and API","svc.c4.f3":"Custom scenario","svc.c4.f4":"Full support",
+    "proc.label":"How We Work","proc.title":"Transparent process from idea to result",
+    "proc.s1.num":"01. Application","proc.s1.title":"Application","proc.s1.desc":"You submit a request on the site or in Telegram",
+    "proc.s2.num":"02. Analysis","proc.s2.title":"Analysis","proc.s2.desc":"We analyse your business and objectives",
+    "proc.s3.num":"03. Development","proc.s3.title":"Development","proc.s3.desc":"We build the bot and configure it for your processes",
+    "proc.s4.num":"04. Testing","proc.s4.title":"Testing","proc.s4.desc":"We run tests and optimise performance",
+    "proc.s5.num":"05. Launch","proc.s5.title":"Launch","proc.s5.desc":"We launch the bot and maintain results",
+    "faq.label":"FAQ","faq.title":"Frequently Asked Questions",
+    "faq.q1":"How long does it take to launch a bot?","faq.a1":"From 3 to 7 business days depending on complexity and integrations. Simple bots with basic features launch in 2–3 days.",
+    "faq.q2":"Can the bot be customised for our business?","faq.a2":"Yes, every bot is configured individually: dialogue scripts, communication tone, answers tailored to your industry.",
+    "faq.q3":"Do I need technical knowledge to use the bot?","faq.a3":"No. After launch you manage the bot through a simple interface. We also provide training and ongoing support.",
+    "faq.q4":"How is data security ensured?","faq.a4":"All data is stored on secure encrypted servers. We do not share data with third parties. We comply with GDPR.",
+    "faq.q5":"Which services and CRMs do you integrate with?","faq.a5":"Google Sheets, Airtable, Bitrix24, amoCRM, Notion, Zapier, Make and any service with an API.",
+    "faq.q6":"Is there a trial period?","faq.a6":"Yes. Before payment we show you a demo of your future bot. We work without upfront payment at the start.",
+    "cta.title":"READY TO AUTOMATE YOUR BUSINESS?","cta.desc":"Leave a request — we'll find the best solution and launch a bot for your needs.",
+    "cf.name":"Name","cf.name.ph":"How should we address you",
+    "cf.contact":"Telegram, phone or e-mail","cf.contact.ph":"@username or +371...",
+    "cf.msg":"Message","cf.msg.ph":"Briefly about your business and task",
+    "cf.btn":"Get a free demonstration",
+    "cf.ok":"Request sent! We'll get in touch shortly.","cf.err":"Sending error. Please try again.",
+    "ft.product":"Product","ft.p1":"Benefits","ft.p2":"How AI Works","ft.p3":"Features","ft.p4":"Technologies",
+    "ft.support":"Support","ft.s1":"Documentation","ft.s2":"Help Centre","ft.s3":"Service Status","ft.s4":"Contact Us",
+    "ft.desc":"AI bots for business that deliver results.",
+    "ft.copy":"© 2026 Lumeo AI. All rights reserved.",
+    "ft.privacy":"Privacy Policy","ft.terms":"Terms of Use"
+  }
+};
+
+let currentLang = 'ru';
+
+function setLang(lang) {
+  currentLang = lang;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.textContent === lang.toUpperCase()));
+  const dict = T[lang];
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (dict[key] !== undefined) el.textContent = dict[key];
+  });
+  document.querySelectorAll('[data-i18n-html]').forEach(el => {
+    const key = el.getAttribute('data-i18n-html');
+    if (dict[key] !== undefined) el.innerHTML = dict[key];
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    if (dict[key] !== undefined) el.placeholder = dict[key];
+  });
+  document.documentElement.lang = lang;
+}
+
+function toggleFaq(el) {
+  const item = el.closest('.faq-item');
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+
+async function submitForm(e) {
+  e.preventDefault();
+  const btn = document.getElementById('cf-submit');
+  const result = document.getElementById('cf-result');
+  const name = document.getElementById('cf-name').value.trim();
+  const contact = document.getElementById('cf-contact').value.trim();
+  const msg = document.getElementById('cf-msg').value.trim();
+  const dict = T[currentLang];
+
+  btn.disabled = true;
+  result.className = 'cf-msg';
+
+  const text = `🆕 <b>Новая заявка — Lumeo AI</b>\n\n👤 <b>Имя:</b> ${name}\n📬 <b>Контакт:</b> ${contact}${msg ? '\n💬 <b>Сообщение:</b> ' + msg : ''}`;
+
+  try {
+    const res = await fetch('https://api.telegram.org/bot8786340693:AAHkGlVVxRh0dCKfHgWmYO7qFc3xohYrfsM/sendMessage', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: '6790728268', text, parse_mode: 'HTML' })
+    });
+    if (!res.ok) throw new Error();
+    result.textContent = dict['cf.ok'];
+    result.className = 'cf-msg ok';
+    document.getElementById('contactForm').reset();
+  } catch {
+    result.textContent = dict['cf.err'];
+    result.className = 'cf-msg err';
+  }
+  btn.disabled = false;
+}
+
+// ── MODAL CONTENT ──────────────────────────────────────────────
+const DOCS = {
+  ru: {
+    privacy: {
+      title: 'Политика конфиденциальности',
+      body: `
+        <h3>1. Общие положения</h3>
+        <p>Настоящая Политика конфиденциальности регулирует порядок сбора, хранения и использования персональных данных пользователей сайта Lumeo AI (lumeo.ai). Используя наш сайт, вы соглашаетесь с условиями настоящей политики.</p>
+        <h3>2. Какие данные мы собираем</h3>
+        <p>При заполнении контактной формы мы получаем: имя, контактные данные (Telegram, телефон или e-mail), сообщение. Мы не собираем cookies для отслеживания и не используем сторонние трекеры.</p>
+        <h3>3. Как мы используем данные</h3>
+        <p>Данные используются исключительно для: связи с вами по вашему запросу, предоставления информации об услугах, выполнения заключённого договора.</p>
+        <h3>4. Хранение и защита данных</h3>
+        <p>Ваши данные передаются по зашифрованному каналу (HTTPS) и не хранятся на серверах сайта. Обращения поступают напрямую в Telegram-бот компании. Мы не передаём данные третьим лицам без вашего согласия.</p>
+        <h3>5. Соответствие GDPR</h3>
+        <p>Мы соблюдаем требования Общего регламента по защите данных (GDPR). Вы вправе в любой момент запросить удаление, исправление или копию своих данных, написав на <strong>hello@lumeo.ai</strong>.</p>
+        <h3>6. Изменения политики</h3>
+        <p>Мы можем обновлять данную политику. Актуальная версия всегда доступна на этой странице.</p>
+        <p class="modal-updated">Последнее обновление: июнь 2025</p>
+      `
+    },
+    terms: {
+      title: 'Пользовательское соглашение',
+      body: `
+        <h3>1. Предмет соглашения</h3>
+        <p>Настоящее Пользовательское соглашение регулирует отношения между Lumeo AI и клиентом в части разработки, настройки и сопровождения AI-ботов для мессенджеров Telegram и WhatsApp.</p>
+        <h3>2. Услуги</h3>
+        <p>Lumeo AI предоставляет услуги по разработке и настройке чат-ботов на основании индивидуального технического задания. Полный перечень и стоимость услуг согласовываются до начала работ.</p>
+        <h3>3. Порядок оплаты</h3>
+        <p>Оплата производится после согласования технического задания и демонстрации прототипа. Мы не требуем предоплату на старте. Конкретные условия фиксируются в договоре или переписке.</p>
+        <h3>4. Сроки выполнения</h3>
+        <p>Сроки разработки согласовываются индивидуально и составляют от 3 до 7 рабочих дней для стандартных решений. Срок фиксируется после утверждения технического задания.</p>
+        <h3>5. Права и интеллектуальная собственность</h3>
+        <p>После полной оплаты клиент получает полные права на использование разработанного бота. Lumeo AI оставляет за собой право использовать проект в портфолио (без раскрытия конфиденциальных данных).</p>
+        <h3>6. Ответственность</h3>
+        <p>Lumeo AI не несёт ответственности за перебои в работе платформ Telegram и WhatsApp, а также за действия третьих сервисов, с которыми интегрируется бот.</p>
+        <h3>7. Конфиденциальность</h3>
+        <p>Стороны обязуются не разглашать коммерческую информацию, полученную в ходе сотрудничества, без письменного согласия другой стороны.</p>
+        <h3>8. Контакты</h3>
+        <p>По всем вопросам: <strong>hello@lumeo.ai</strong> или Telegram <strong>@Orbitaru7</strong>.</p>
+        <p class="modal-updated">Последнее обновление: июнь 2025</p>
+      `
+    }
+  },
+  lv: {
+    privacy: {
+      title: 'Privātuma politika',
+      body: `
+        <h3>1. Vispārīgie noteikumi</h3>
+        <p>Šī Privātuma politika regulē personas datu vākšanu, glabāšanu un izmantošanu Lumeo AI vietnes (lumeo.ai) lietotājiem. Izmantojot mūsu vietni, jūs piekrītat šīs politikas noteikumiem.</p>
+        <h3>2. Kādus datus mēs vācam</h3>
+        <p>Aizpildot kontaktformu, mēs saņemam: vārdu, kontaktinformāciju (Telegram, tālrunis vai e-pasts), ziņojumu. Mēs nevācam izsekošanas sīkdatnes un neizmantojam trešo pušu izsekotājus.</p>
+        <h3>3. Kā mēs izmantojam datus</h3>
+        <p>Dati tiek izmantoti tikai, lai: sazinātos ar jums pēc jūsu pieprasījuma, sniegtu informāciju par pakalpojumiem, izpildītu noslēgto līgumu.</p>
+        <h3>4. Datu glabāšana un aizsardzība</h3>
+        <p>Jūsu dati tiek pārsūtīti pa šifrētu kanālu (HTTPS) un netiek glabāti vietnes serveros. Pieteikumi nonāk tieši uzņēmuma Telegram botā. Mēs nenododam datus trešajām personām bez jūsu piekrišanas.</p>
+        <h3>5. GDPR atbilstība</h3>
+        <p>Mēs ievērojam Vispārīgās datu aizsardzības regulas (GDPR) prasības. Jums ir tiesības jebkurā laikā pieprasīt datu dzēšanu, labošanu vai kopiju, rakstot uz <strong>hello@lumeo.ai</strong>.</p>
+        <h3>6. Politikas izmaiņas</h3>
+        <p>Mēs varam atjaunināt šo politiku. Jaunākā versija vienmēr ir pieejama šajā lapā.</p>
+        <p class="modal-updated">Pēdējais atjauninājums: 2025. gada jūnijs</p>
+      `
+    },
+    terms: {
+      title: 'Lietošanas noteikumi',
+      body: `
+        <h3>1. Līguma priekšmets</h3>
+        <p>Šie Lietošanas noteikumi regulē attiecības starp Lumeo AI un klientu AI botu izstrādes, konfigurācijas un atbalsta jomā Telegram un WhatsApp kurjeriem.</p>
+        <h3>2. Pakalpojumi</h3>
+        <p>Lumeo AI sniedz čatbotu izstrādes un konfigurācijas pakalpojumus, pamatojoties uz individuālu tehnisko uzdevumu. Pilns pakalpojumu saraksts un izmaksas tiek saskaņotas pirms darbu sākšanas.</p>
+        <h3>3. Maksājumu kārtība</h3>
+        <p>Maksājums tiek veikts pēc tehniskā uzdevuma saskaņošanas un prototipa demonstrācijas. Mēs neprasām priekšapmaksu sākumā. Konkrētie nosacījumi tiek fiksēti līgumā vai sarakstē.</p>
+        <h3>4. Izpildes termiņi</h3>
+        <p>Izstrādes termiņi tiek saskaņoti individuāli un standarta risinājumiem ir no 3 līdz 7 darba dienām. Termiņš tiek fiksēts pēc tehniskā uzdevuma apstiprināšanas.</p>
+        <h3>5. Tiesības un intelektuālais īpašums</h3>
+        <p>Pēc pilnas apmaksas klients iegūst pilnas tiesības izmantot izstrādāto botu. Lumeo AI patur tiesības izmantot projektu portfolio (neatklājot konfidenciālus datus).</p>
+        <h3>6. Atbildība</h3>
+        <p>Lumeo AI neatbild par Telegram un WhatsApp platformu darbības traucējumiem, kā arī par trešo pušu pakalpojumu darbībām, ar kuriem bots ir integrēts.</p>
+        <h3>7. Konfidencialitāte</h3>
+        <p>Puses apņemas neizpaust komerciālo informāciju, kas iegūta sadarbības laikā, bez otras puses rakstiskas piekrišanas.</p>
+        <h3>8. Kontakti</h3>
+        <p>Pa visiem jautājumiem: <strong>hello@lumeo.ai</strong> vai Telegram <strong>@Orbitaru7</strong>.</p>
+        <p class="modal-updated">Pēdējais atjauninājums: 2025. gada jūnijs</p>
+      `
+    }
+  },
+  en: {
+    privacy: {
+      title: 'Privacy Policy',
+      body: `
+        <h3>1. General provisions</h3>
+        <p>This Privacy Policy governs the collection, storage and use of personal data of Lumeo AI website (lumeo.ai) users. By using our site you agree to the terms of this policy.</p>
+        <h3>2. What data we collect</h3>
+        <p>When you fill in the contact form we receive: name, contact details (Telegram, phone or e-mail), message. We do not collect tracking cookies and do not use third-party trackers.</p>
+        <h3>3. How we use your data</h3>
+        <p>Data is used solely to: contact you in response to your request, provide information about our services, fulfil the concluded agreement.</p>
+        <h3>4. Data storage and protection</h3>
+        <p>Your data is transmitted over an encrypted channel (HTTPS) and is not stored on the website's servers. Enquiries go directly to the company's Telegram bot. We do not share data with third parties without your consent.</p>
+        <h3>5. GDPR compliance</h3>
+        <p>We comply with the General Data Protection Regulation (GDPR). You may at any time request deletion, correction or a copy of your data by writing to <strong>hello@lumeo.ai</strong>.</p>
+        <h3>6. Policy changes</h3>
+        <p>We may update this policy. The current version is always available on this page.</p>
+        <p class="modal-updated">Last updated: June 2025</p>
+      `
+    },
+    terms: {
+      title: 'Terms of Use',
+      body: `
+        <h3>1. Subject of the agreement</h3>
+        <p>These Terms of Use govern the relationship between Lumeo AI and the client regarding the development, configuration and support of AI bots for Telegram and WhatsApp messengers.</p>
+        <h3>2. Services</h3>
+        <p>Lumeo AI provides chatbot development and configuration services based on an individual specification. The full list and cost of services are agreed before work begins.</p>
+        <h3>3. Payment procedure</h3>
+        <p>Payment is made after the specification is agreed and the prototype is demonstrated. We do not require upfront payment at the start. Specific terms are recorded in a contract or correspondence.</p>
+        <h3>4. Deadlines</h3>
+        <p>Development timelines are agreed individually and range from 3 to 7 business days for standard solutions. The deadline is fixed after the specification is approved.</p>
+        <h3>5. Rights and intellectual property</h3>
+        <p>After full payment the client receives full rights to use the developed bot. Lumeo AI reserves the right to use the project in its portfolio (without disclosing confidential data).</p>
+        <h3>6. Liability</h3>
+        <p>Lumeo AI is not liable for interruptions to the Telegram and WhatsApp platforms, or for the actions of third-party services integrated with the bot.</p>
+        <h3>7. Confidentiality</h3>
+        <p>Both parties undertake not to disclose commercial information obtained during the cooperation without the written consent of the other party.</p>
+        <h3>8. Contacts</h3>
+        <p>For all enquiries: <strong>hello@lumeo.ai</strong> or Telegram <strong>@Orbitaru7</strong>.</p>
+        <p class="modal-updated">Last updated: June 2025</p>
+      `
+    }
+  }
+};
+
+const CONTACT_I18N = {
+  ru: { title:'Связаться с нами', tg:'Telegram', email:'Электронная почта', phone:'Телефон' },
+  lv: { title:'Sazināties ar mums', tg:'Telegram', email:'E-pasts', phone:'Tālrunis' },
+  en:  { title:'Contact Us', tg:'Telegram', email:'Email', phone:'Phone' }
+};
+
+const HELP_I18N = {
+  ru: { title:'Центр помощи', name:'Имя', contact:'Telegram, телефон или e-mail', msg:'Сообщение', btn:'Получить бесплатную демонстрацию', namePh:'Как к вам обращаться', contactPh:'@username или +371...', msgPh:'Коротко о вашем бизнесе и задаче', ok:'Заявка отправлена! Мы свяжемся с вами в ближайшее время.', err:'Ошибка отправки. Попробуйте ещё раз.' },
+  lv: { title:'Palīdzības centrs', name:'Vārds', contact:'Telegram, tālrunis vai e-pasts', msg:'Ziņojums', btn:'Saņemt bezmaksas demonstrāciju', namePh:'Kā pie jums uzrunāt', contactPh:'@username vai +371...', msgPh:'Īsi par jūsu biznesu un uzdevumu', ok:'Pieteikums nosūtīts! Mēs ar jums sazināsimies tuvākajā laikā.', err:'Nosūtīšanas kļūda. Mēģiniet vēlreiz.' },
+  en:  { title:'Help Centre', name:'Name', contact:'Telegram, phone or e-mail', msg:'Message', btn:'Get a free demonstration', namePh:'How should we address you', contactPh:'@username or +371...', msgPh:'Briefly about your business and task', ok:"Request sent! We'll get in touch shortly.", err:'Sending error. Please try again.' }
+};
+
+function openModal(id) {
+  const lang = currentLang;
+  const doc = DOCS[lang] || DOCS['ru'];
+  if (id === 'modal-contact') {
+    const c = CONTACT_I18N[lang] || CONTACT_I18N['ru'];
+    document.getElementById('mc-title').textContent = c.title;
+    document.getElementById('mc-tg-label').textContent = c.tg;
+    document.getElementById('mc-email-label').textContent = c.email;
+    document.getElementById('mc-phone-label').textContent = c.phone;
+  } else if (id === 'modal-help') {
+    const h = HELP_I18N[lang] || HELP_I18N['ru'];
+    document.getElementById('mh-title').textContent = h.title;
+    document.getElementById('mh-label-name').textContent = h.name;
+    document.getElementById('mh-label-contact').textContent = h.contact;
+    document.getElementById('mh-label-msg').textContent = h.msg;
+    document.getElementById('hf-submit').textContent = h.btn;
+    document.getElementById('hf-name').placeholder = h.namePh;
+    document.getElementById('hf-contact').placeholder = h.contactPh;
+    document.getElementById('hf-msg').placeholder = h.msgPh;
+    document.getElementById('hf-result').className = 'cf-msg';
+    document.getElementById('helpForm').reset();
+  } else if (id === 'modal-privacy') {
+    document.getElementById('mp-title').textContent = doc.privacy.title;
+    document.getElementById('mp-body').innerHTML = doc.privacy.body;
+  } else {
+    document.getElementById('mt-title').textContent = doc.terms.title;
+    document.getElementById('mt-body').innerHTML = doc.terms.body;
+  }
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+async function submitHelpForm(e) {
+  e.preventDefault();
+  const h = HELP_I18N[currentLang] || HELP_I18N['ru'];
+  const btn = document.getElementById('hf-submit');
+  const result = document.getElementById('hf-result');
+  const name = document.getElementById('hf-name').value.trim();
+  const contact = document.getElementById('hf-contact').value.trim();
+  const msg = document.getElementById('hf-msg').value.trim();
+  btn.disabled = true;
+  result.className = 'cf-msg';
+  const text = `🆕 <b>Новая заявка (Центр помощи) — Lumeo AI</b>\n\n👤 <b>Имя:</b> ${name}\n📬 <b>Контакт:</b> ${contact}${msg ? '\n💬 <b>Сообщение:</b> ' + msg : ''}`;
+  try {
+    const res = await fetch('https://api.telegram.org/bot8786340693:AAHkGlVVxRh0dCKfHgWmYO7qFc3xohYrfsM/sendMessage', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ chat_id:'6790728268', text, parse_mode:'HTML' })
+    });
+    if (!res.ok) throw new Error();
+    result.textContent = h.ok;
+    result.className = 'cf-msg ok';
+    document.getElementById('helpForm').reset();
+  } catch {
+    result.textContent = h.err;
+    result.className = 'cf-msg err';
+  }
+  btn.disabled = false;
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function closeModalOutside(e, id) {
+  if (e.target === document.getElementById(id)) closeModal(id);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeModal('modal-contact');
+    closeModal('modal-help');
+    closeModal('modal-privacy');
+    closeModal('modal-terms');
+  }
+});
+
+setLang('ru');
+</script>
+</body>
+</html>
